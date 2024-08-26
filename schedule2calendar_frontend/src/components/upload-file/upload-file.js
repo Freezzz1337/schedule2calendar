@@ -3,13 +3,16 @@ import {Button, Form} from "react-bootstrap";
 import {convertFileToBase64} from "../../util/convert-file-to-base64";
 import {useState} from "react";
 import {BsCheckCircle, BsUpload, BsXCircle} from "react-icons/bs";
+import {postGraphImage} from "../../services/graph-service";
 
 const UploadFile = () => {
-    const [picture, setPicture] = useState(null);
+    const [graphImage, setGraphImage] = useState(null);
     const [fileName, setFileName] = useState('');
+    const [inputKey, setInputKey] = useState(Date.now());
+    const [inputDisabled, setInputDisabled] = useState(false);
 
     const handleChange = (e) => {
-        if (picture) {
+        if (graphImage) {
             return;
         }
         if (e.target.type === 'file') {
@@ -17,26 +20,44 @@ const UploadFile = () => {
             if (file) {
                 setFileName(file.name);
                 convertFileToBase64(file, (base64String) => {
-                    setPicture(base64String);
+                    setGraphImage(base64String);
                 });
             }
         }
     };
 
     const handleRemove = () => {
-        setPicture(null);
+        setGraphImage(null);
         setFileName('');
+        setInputDisabled(true);
+        setInputKey(Date.now());
+
+        setTimeout(() => {
+            setInputDisabled(false);
+        }, 100);
     };
 
-    const handleSubmit = () => {
-        console.log('Submitting picture:', picture);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        console.log(graphImage);
+        try {
+            const serverResponse = await postGraphImage(JSON.stringify({graphImage}));
+            if (serverResponse.response) {
+               console.log("W!")
+            } else {
+                console.log("L!")
+            }
+        } catch (error) {
+            console.log("Login failed:", error);
+        }
     };
-//todo make it so that after pressing cancel the window with the selected file does not open
+
     return (
         <Form.Group>
             <Form.Label className="custom-file-upload" htmlFor="file">
                 <div className="d-flex align-items-center">
-                    {picture ? (
+                    {graphImage ? (
                         <div className="d-flex flex-column align-items-center">
                             <span className="mb-2" style={{fontSize: "25px"}}>{fileName}</span>
                             <div className="d-flex justify-content-between w-100">
@@ -65,12 +86,12 @@ const UploadFile = () => {
                             <div className="ms-2">
                                 <span>Click to upload image</span>
                             </div>
-
                         </div>
                     )}
                 </div>
                 <Form.Control
-                    disabled={!!picture}
+                    key={inputKey}
+                    disabled={inputDisabled || !!graphImage}
                     type="file"
                     name="picture"
                     accept="image/*"
@@ -82,4 +103,6 @@ const UploadFile = () => {
         </Form.Group>
     );
 };
+
+
 export default UploadFile;
