@@ -13,17 +13,21 @@ public class ImagePreprocessor {
     }
 
     public BufferedImage preprocessImage(BufferedImage inputImage) {
-        // Convert BufferedImage to Mat
         Mat matImage = bufferedImageToMat(inputImage);
 
-        // Convert to black and white
         Mat grayImage = new Mat();
         Imgproc.cvtColor(matImage, grayImage, Imgproc.COLOR_BGR2GRAY);
 
-        // Changing the image scale
-        Mat scaledImage = scaleImage(grayImage, 3);
+        Mat binaryImage = new Mat();
+        Imgproc.adaptiveThreshold(grayImage, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+                Imgproc.THRESH_BINARY, 9, 7);
 
-        // Convert Mat back to BufferedImage
+        Mat denoisedImage = new Mat();
+        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1));
+        Imgproc.morphologyEx(binaryImage, denoisedImage, Imgproc.MORPH_CLOSE, kernel);
+
+        Mat scaledImage = scaleImage(denoisedImage, 4);
+
         BufferedImage processedImage = matToBufferedImage(scaledImage);
 
         return processedImage;

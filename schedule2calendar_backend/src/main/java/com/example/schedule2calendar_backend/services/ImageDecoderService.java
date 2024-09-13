@@ -16,22 +16,19 @@ public class ImageDecoderService {
         byte[] decodedBytes = Base64.getDecoder().decode(base64String);
         try (ByteArrayInputStream bis = new ByteArrayInputStream(decodedBytes)) {
             BufferedImage image = ImageIO.read(bis);
-            saveImageToFile(image, "path/to/save/image.png");
+            //--------------------------------------------
+            File file = new File("1AfterDecode.png");
+            if (file.exists()) {
+                file.delete();
+            }
+            ImageIO.write(image, "png", file);
+            //--------------------------------------------
+
             return image;
         }
     }
 
-    private void saveImageToFile(BufferedImage image, String filePath) throws IOException {
-        File file = new File("img2.png");
-        if (file.exists()) {
-            file.delete();
-        }
-        ImageIO.write(image, "png", file);
-    }
 }
-
-
-
 
 //@Service
 //public class ImageDecoderService {
